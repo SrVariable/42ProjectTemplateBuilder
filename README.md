@@ -1,5 +1,13 @@
 # 42 Project Template Builder
 
+## Table of Contents
+
+1. [Description](#description)
+2. [Requirements](#requirements)
+3. [Usage](#usage)
+4. [Alias](#alias)
+5. [Example](#example)
+
 ## Description
 
 This is a Python script that builds a 42 Project Template for your C Projects.
