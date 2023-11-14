@@ -130,7 +130,7 @@ def c_makefile_template(name):
     file.write('\n')
     file.write('# <-- Objects Creation --> #\n')
     file.write('%.o: %.c\n')
-    file.write('\t$(CC) $(FLAGS) -c $< -o $@\n')
+    file.write('\t$(CC) $(CFLAGS) -c $< -o $@\n')
     file.write('\n')
     file.write('# <-- Objects Destruction --> #\n')
     file.write('clean:\n')
