@@ -6,7 +6,6 @@
 2. [Requirements](#requirements)
 3. [Usage](#usage)
 4. [Alias](#alias)
-5. [Example](#example)
 
 ## Description
 
