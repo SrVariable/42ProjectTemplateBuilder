@@ -1,5 +1,7 @@
 import os
+from datetime import datetime
 
+# Function to create respective directories
 def create_dirs():
     if (not os.path.exists("include")):
         os.makedirs("include")
@@ -8,155 +10,237 @@ def create_dirs():
     if (not os.path.exists("utils")):
         os.makedirs("utils")
 
-def c_main_template(name):
+# Function to create the 42 header
+def create_header(filename, username, email):
+    # If the lenght of the email is too long it'll
+    # be trimmed to avoid overlapping with the 42
+    if (len(email) > 30):
+        email = email[:29].ljust(29)
+    author = "By: " + username + " <" + email + ">"
+    creation_date = "Created: " + datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " by " + username
+    update_date = "Updated: " + datetime.now().strftime("%Y/%m/%d %H:%M:%S") + " by " + username
+
+    # First line
+    header = "/* " + "*" * 74 + " */\n"
+
+    # Empty line
+    header += "/* " + " " * 74 + " */\n"
+
+    # Middle
+    header += "/*" + " " * 57 + ":::" + " " * 5 + ":" * 8 + " " * 3 + "*/\n"
+    header += "/*" + " " * 3 + "{}".format(filename) + " " * (52 - len(filename)) + ":+:" + " " * 5 + ":+:" + " " * 4 + ":+:" + " " * 3+ "*/\n"
+    header += "/*" + " " * 53 + "+:+ +:+" + " " * 8 + "+:+" + " " * 5 + "*/\n"
+    header += "/*" + " " * 3 + author + " " * (41 - len(username) - len(email)) + "+#+  +:+" + " " * 6 + "+#+" + " " * 8 + "*/\n"
+    header += "/*" + " " * 49 + "+#" * 5 + "+" + " " * 3 + "+#+" + " " * 10 + "*/\n"
+    header += "/*" + " " * 3 + creation_date + " " * (19 - len(username)) + "#+#" + " " * 4 + "#+#" + " " * 12 + "*/\n"
+    header += "/*" + " " * 3 + update_date + " " * (18 - len(username)) + "#" * 3 + " " * 3 + "#" * 10 + " " * 7 + "*/\n"
+
+    # Empty line
+    header += "/* " + " " * 74 + " */\n"
+
+    # Last line
+    header += "/* " + "*" * 74 + " */\n"
+
+    return header
+
+# Function that generates the main file
+def c_main_template(header, name):
     file = open(os.path.join("src/{}.c").format(name), 'w')
-    file.write('#include "../include/{}.h"\n'.format(name))
-    file.write('\n')
-    file.write('int\tmain(int argc, char **argv)\n')
-    file.write('{\n')
-    file.write('\tprintf("Hello World\\n");\n')
-    file.write('\tribanab();\n')
-    file.write('\treturn (0);\n')
-    file.write('}')
-    file.write('\n')
+    file.write(
+            '''\
+{}
+#include "../include/{}.h"
+
+int\tmain(void)
+{{
+\tribanab();
+\treturn (0);
+}}
+'''.format(header, name)
+            )
     file.close
 
-def c_header_template(name):
+# Function that generates the header file
+def c_header_template(header, name):
     file = open(os.path.join("include/{}.h".format(name)), 'w')
-    file.write('#ifndef {}_H\n'.format(name.upper()))
-    file.write('# define {}_H\n'.format(name.upper()))
-    file.write('\n')
-    file.write('/* <--Defines Section--> */\n')
-    file.write('\n')
-    file.write('/* <--Libraries Section--> */\n')
-    file.write('# include <stdio.h>\n')
-    file.write('\n')
-    file.write('/* <--Structs Section--> */\n')
-    file.write('\n')
-    file.write('/* <--Functions Section--> */\n')
-    file.write('void\tribanab(void);\n')
-    file.write('\n')
-    file.write('#endif')
+    file.write(
+            '''\
+{}
+#ifndef {}_H
+# define {}_H
+
+/* <-- Defines Section --> */
+
+/* <-- Libraries Section --> */
+
+# include <stdio.h>
+
+/* <-- Structs Section --> */
+
+/* <-- Functions Section --> */
+
+void\tribanab(void);
+
+#endif
+'''.format(header, name.upper(), name.upper()))
     file.close
 
-def c_utils_template(name):
+# Function that generates the utils file
+def c_utils_template(header, name):
     file = open(os.path.join("utils/utils.c"), 'w')
-    file.write('#include "../include/{}.h"\n'.format(name))
-    file.write('\n')
-    file.write('void\tribanab(void)\n')
-    file.write('{\n')
-    file.write('\tprintf("ribana-b is a 42 Student :O\\n");\n')
-    file.write('\treturn ;\n')
-    file.write('}')
-    file.write('\n')
+    file.write(
+            '''\
+{}
+#include "../include/{}.h"
 
+void\tribanab(void)
+{{
+\tprintf("Hello World, I am ribana-b from 42 Malaga c:\\n");
+\treturn ;
+}}
+'''.format(header, name))
     file.close
 
+# Function that generates the Makefile template
 def c_makefile_template(name):
     file = open(os.path.join("Makefile"), 'w')
-    file.write('# ========================================================================== #\n')
-    file.write('\n')
-    file.write('# <-- Color Library --> #\n')
-    file.write('\n')
-    file.write('# <-- Text Color --> #\n')
-    file.write('T_BLACK = \\033[30m\n')
-    file.write('T_RED = \\033[31m\n')
-    file.write('T_GREEN = \\033[32m\n')
-    file.write('T_YELLOW = \\033[33m\n')
-    file.write('T_BLUE = \\033[34m\n')
-    file.write('T_MAGENTA = \\033[35m\n')
-    file.write('T_CYAN = \\033[36m\n')
-    file.write('T_WHITE = \\033[37m\n')
-    file.write('\n')
-    file.write('# <-- Text Style --> #\n')
-    file.write('BOLD = \\033[1m\n')
-    file.write('ITALIC = \\033[2m\n')
-    file.write('UNDERLINE = \\033[3m\n')
-    file.write('STRIKETHROUGH = \\033[4m\n')
-    file.write('\n')
-    file.write('# <-- Background Color --> #\n')
-    file.write('B_RED = \\033[31m\n')
-    file.write('B_BLACK = \\033[30m\n')
-    file.write('B_GREEN = \\033[32m\n')
-    file.write('B_YELLOW = \\033[33m\n')
-    file.write('B_BLUE = \\033[34m\n')
-    file.write('B_MAGENTA = \\033[35m\n')
-    file.write('B_CYAN = \\033[36m\n')
-    file.write('B_WHITE = \\033[37m\n')
-    file.write('\n')
-    file.write('# <-- Reset Everything --> #\n')
-    file.write('RESET = \\033[0m\n')
-    file.write('\n')
-    file.write('# ========================================================================== #\n')
-    file.write('\n')
-    file.write('# <-- Library\'s Name --> #\n')
-    file.write('NAME = {}\n'.format(name))
-    file.write('\n')
-    file.write('# <-- Compilation Command --> #\n')
-    file.write('CC = gcc\n')
-    file.write('\n')
-    file.write('# <-- Compilation Flags --> #\n')
-    file.write('CFLAGS = -Wall -Wextra -Werror\n')
-    file.write('\n')
-    file.write('# <-- Remove Command -->#\n')
-    file.write('RM = rm -f\n')
-    file.write('\n')
-    file.write('# <-- Directories --> #\n')
-    file.write('SRC_DIR = src/\n')
-    file.write('UTILS_DIR = utils/\n')
-    file.write('\n')
-    file.write('# <-- Files --> #\n')
-    file.write('SRC_FILES = {}.c\n'.format(name))
-    file.write('UTILS_FILES = utils.c\n')
-    file.write('\n')
-    file.write('# <-- Directories + Files --> #\n')
-    file.write('SRC = $(addprefix $(SRC_DIR), $(SRC_FILES))\n')
-    file.write('UTILS = $(addprefix $(UTILS_DIR), $(UTILS_FILES))\n')
-    file.write('\n')
-    file.write('# <-- Objects --> #\n')
-    file.write('OBJ_SRC = $(SRC:.c=.o)\n')
-    file.write('OBJ_UTILS = $(UTILS:.c=.o)\n')
-    file.write('\n')
-    file.write('# ========================================================================== #\n')
-    file.write('\n')
-    file.write('# <-- Main Target --> #\n')
-    file.write('all: $(NAME)\n')
-    file.write('\n')
-    file.write('# <--Library Creation--> #\n')
-    file.write('$(NAME): $(OBJ_SRC) $(OBJ_UTILS)\n')
-    file.write('\t@echo \"$(T_YELLOW)$(BOLD)Objects created successfully$(RESET)\"\n')
-    file.write('\tar rcs $(NAME) $(OBJ_SRC) $(OBJ_UTILS)\n')
-    file.write('\t@echo \"$(T_YELLOW)$(BOLD)$(NAME) created successfully$(RESET)\"\n')
-    file.write('\n')
-    file.write('# <-- Objects Creation --> #\n')
-    file.write('%.o: %.c\n')
-    file.write('\t$(CC) $(CFLAGS) -c $< -o $@\n')
-    file.write('\n')
-    file.write('# <-- Objects Destruction --> #\n')
-    file.write('clean:\n')
-    file.write('\t$(RM) $(OBJ_SRC) $(OBJ_UTILS)\n')
-    file.write('\t@echo \"$(T_RED)$(BOLD)Objects destroyed successfully$(RESET)\"\n')
-    file.write('\n')
-    file.write('# <- Clean Execution + {} Destruction -> #\n'.format(name))
-    file.write('fclean: clean\n')
-    file.write('\t$(RM) $(NAME)\n')
-    file.write('\t@echo \"$(T_RED)$(BOLD)$(NAME) destroyed successfully$(RESET)\"\n')
-    file.write('\n')
-    file.write('# <- Fclean Execution + All Execution -> #\n')
-    file.write('re: fclean all\n')
-    file.write('\n')
-    file.write('# <- Targets Declaration -> #\n')
-    file.write('.PHONY = all clean fclean re\n')
-    file.write('\n')
-    file.write('# ========================================================================== #')
+    file.write(
+            '''\
+# ========================================================================== #
+
+# <-- Color Library --> #
+
+# <-- Text Color --> #
+T_BLACK = \\033[30m
+T_RED = \\033[31m
+T_GREEN = \\033[32m
+T_YELLOW = \\033[33m
+T_BLUE = \\033[34m
+T_MAGENTA = \\033[35m
+T_CYAN = \\033[36m
+T_WHITE = \\033[37m
+
+# <-- Text Style --> #
+BOLD = \\033[1m
+ITALIC = \\033[2m
+UNDERLINE = \\033[3m
+STRIKETHROUGH = \\033[4m
+
+# <-- Background Color --> #
+B_RED = \\033[31m
+B_BLACK = \\033[30m
+B_GREEN = \\033[32m
+B_YELLOW = \\033[33m
+B_BLUE = \\033[34m
+B_MAGENTA = \\033[35m
+B_CYAN = \\033[36m
+B_WHITE = \\033[37m
+
+# <-- Reset Everything --> #
+RESET = \\033[0m
+
+# ========================================================================== #
+
+# <-- Library\'s Name --> #
+NAME = {}
+
+# <-- Compilation Command --> #
+CC = gcc
+
+# <-- Compilation Flags --> #
+CFLAGS = -Wall -Wextra -Werror -I ./include
+
+# <-- Remove Command -->#
+RM = rm -f
+
+# <-- Directories --> #
+SRC_DIR = src/
+UTILS_DIR = utils/
+
+# <-- Files --> #
+SRC_FILES = {}.c
+UTILS_FILES = utils.c
+
+# <-- Directories + Files --> #
+SRC = $(addprefix $(SRC_DIR), $(SRC_FILES))
+UTILS = $(addprefix $(UTILS_DIR), $(UTILS_FILES))
+
+# <-- Objects --> #
+OBJ_SRC = $(SRC:%.c=%.o)
+OBJ_UTILS = $(UTILS:%.c=%.o)
+
+# ========================================================================== #
+
+# <-- Main Target --> #
+all: $(NAME)
+
+# <--Library Creation--> #
+$(NAME): $(OBJ_SRC) $(OBJ_UTILS)
+\t@echo \"$(T_YELLOW)$(BOLD)Objects $(RESET)$(T_GREEN)created successfully$(RESET)\"
+\t@ar rcs $(NAME) $(OBJ_SRC) $(OBJ_UTILS)
+\t@echo \"$(T_MAGENTA)$(BOLD)$(NAME) $(RESET)$(T_GREEN)created successfully$(RESET)\"
+
+# <-- Objects Creation --> #
+%.o: %.c
+\t@$(CC) $(CFLAGS) -c $< -o $@
+
+# <-- Objects Destruction --> #
+clean:
+\t@$(RM) $(OBJ_SRC) $(OBJ_UTILS)
+\t@echo \"$(T_YELLOW)$(BOLD)Objects $(RESET)$(T_RED)destroyed successfully$(RESET)\"
+
+# <-- Clean Execution + {} Destruction --> #
+fclean: clean
+\t@$(RM) $(NAME) *.out
+\t@echo \"$(T_MAGENTA)$(BOLD)$(NAME) $(RESET)$(T_RED)destroyed successfully$(RESET)\"
+
+# <-- Fclean Execution + All Execution --> #
+re: fclean all
+
+# <-- Color testing --> #
+
+colortesting:
+\t@echo "$(T_BLACK)Black text"
+\t@echo "$(T_RED)Red text"
+\t@echo "$(T_GREEN)Green text"
+\t@echo "$(T_YELLOW)Yellow text"
+\t@echo "$(T_BLUE)Blue text"
+\t@echo "$(T_MAGENTA)Magenta text"
+\t@echo "$(T_CYAN)Cyan text"
+\t@echo "$(T_WHITE)White text$(RESET)"
+\t@echo "$(BOLD)"
+\t@echo "$(T_BLACK)Bold Black text"
+\t@echo "$(T_RED)Bold Red text"
+\t@echo "$(T_GREEN)Bold Green text"
+\t@echo "$(T_YELLOW)Bold Yellow text"
+\t@echo "$(T_BLUE)Bold Blue text"
+\t@echo "$(T_MAGENTA)Bold Magenta text"
+\t@echo "$(T_CYAN)Bold Cyan text"
+\t@echo "$(T_WHITE)Bold White text$(RESET)"
+
+# <-- Run program -->
+run: re
+\t@$(CC) $(CFLAGS) $(NAME) -o $(NAME).out
+\t@./$(NAME).out
+
+# <-- Targets Declaration --> #
+.PHONY = all clean fclean re colortesting run
+
+# ========================================================================== #
+'''.format(name, name, name))
     file.close
 
+# Main function
 def main():
     project_name = input('Introduce the name of the project: ')
+    # You can replace input() with your login
+    username = input('Introduce your login: ')
+    # You can replace input() with your email
+    email = input('Introduce your email: ')
     create_dirs()
-    c_main_template(project_name)
-    c_header_template(project_name)
-    c_utils_template(project_name)
+    c_main_template(create_header("{}.c".format(project_name), username, email), project_name)
+    c_header_template(create_header("{}.h".format(project_name), username, email), project_name)
+    c_utils_template(create_header("{}.c".format(project_name), username, email), project_name)
     c_makefile_template(project_name)
 
 if (__name__ == "__main__"):
