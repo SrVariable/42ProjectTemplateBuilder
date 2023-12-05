@@ -20,7 +20,7 @@ This is a Python script that builds a 42 Project Template for your C Projects.
 
 Clone the repository:
 ```Shell
-git clone https://github.com/SrRecursive/42ProjectTemplateBuilder
+git clone https://github.com/SrVariable/42ProjectTemplateBuilder
 ```
 
 Go inside the folder:
