@@ -148,7 +148,7 @@ NAME = {}
 CC = gcc
 
 # <-- Compilation Flags --> #
-CFLAGS = -Wall -Wextra -Werror -I ./include
+CFLAGS = -Wall -Wextra -Werror
 
 # <-- Remove Command -->#
 RM = rm -rf
@@ -167,9 +167,8 @@ SRC = $(addprefix $(SRC_DIR), $(SRC_FILES))
 UTILS = $(addprefix $(UTILS_DIR), $(UTILS_FILES))
 
 # <-- Objects --> #
-OBJ_SRC = $(SRC:%.c=%.o)
-OBJ_UTILS = $(UTILS:%.c=%.o)
-OBJ = $(OBJ_SRC) $(OBJ_UTILS)
+OBJ = $(patsubst $(SRC_DIR)%.c, $(OBJ_DIR)%.o, $(SRC)) \\
+ \t\t$(patsubst $(UTILS_DIR)%.c, $(OBJ_DIR)%.o, $(UTILS))
 
 # ========================================================================== #
 
@@ -177,16 +176,21 @@ OBJ = $(OBJ_SRC) $(OBJ_UTILS)
 all: $(NAME)
 
 # <--Library Creation--> #
-$(NAME): $(OBJ)
+$(NAME): $(OBJ_DIR) $(OBJ)
 \t@echo \"$(T_YELLOW)$(BOLD)Objects $(RESET)$(T_GREEN)created successfully$(RESET)\"
 \t@# $(CC) $(CFLAGS) $(OBJ) -o $(NAME) # Use this if you want to create a program
-\t@ar rcs $(NAME) $(OBJ_SRC) $(OBJ_UTILS) # Use this if you want to create a library
+\t@ar rcs $(NAME) $(OBJ) # Use this if you want to create a library
 \t@echo \"$(T_MAGENTA)$(BOLD)$(NAME) $(RESET)$(T_GREEN)created successfully$(RESET)\"
+
+# <-- Object Directory Creation --> #
+$(OBJ_DIR):
 \t@mkdir -p $(OBJ_DIR)
-\t@mv $(OBJ) $(OBJ_DIR)
 
 # <-- Objects Creation --> #
-%.o: %.c
+$(OBJ_DIR)%.o: $(SRC_DIR)%.c
+\t@$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)%.o: $(UTILS_DIR)%.c
 \t@$(CC) $(CFLAGS) -c $< -o $@
 
 # <-- Objects Destruction --> #
