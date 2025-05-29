@@ -14,7 +14,7 @@ This is a Python script that builds a 42 Project Template for your C Projects.
 ## Requirements
 
 - Git
-- Python 2.7.16 or later versions
+- Python 3
 
 ## Usage
 
@@ -30,7 +30,7 @@ cd 42ProjectTemplateBuilder
 
 Run the file:
 ```Shell
-python main.py
+python3 main.py
 ```
 
 It will ask you the project name, your login and your email
@@ -53,9 +53,6 @@ It will create the following directory tree in the current directory:
 | - Makefile
 ```
 
-> [!IMPORTANT]
-> In Python 2.X you have to introduce your login and email with double quotes.
-
 > [!TIP]
 > If you don't want to type this every time you can modify the inputs for strings
 > with your login and email in the file main.py
@@ -66,14 +63,6 @@ It will create the following directory tree in the current directory:
 Since it creates the template in the current directory, you can create an alias to run
 the program, so you will be able to execute it anywhere.
 
-If you have zsh:
-
 ```Shell
-alias build="python ~/(path_of_repository)/42ProjectTemplateBuilder/main.py" >> ~/.zshrc
-```
-
-If you have bash:
-
-```Shell
-alias build="python ~/(path_of_repository)/42ProjectTemplateBuilder/main.py" >> ~/.bashrc
+alias build="python3 ~/(path_of_repository)/42ProjectTemplateBuilder/main.py" >> ~/.${SHELL##/bin/}rc
 ```
