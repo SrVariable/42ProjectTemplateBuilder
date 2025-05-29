@@ -14,7 +14,7 @@ This is a Python script that builds a 42 Project Template for your C Projects.
 ## Requirements
 
 - Git
-- Python 3
+- Python3
 
 ## Usage
 
@@ -33,36 +33,31 @@ Run the file:
 python3 main.py
 ```
 
-It will ask you the project name, your login and your email
+It will ask you the project name, your login, your email and a tag,
+which will be displayed alongside 42 logo.
 
 ```Shell
-Introduce the name of the project: hello_world
-Introduce your login: ribana-b
-Introduce your email: ribana-b@student.42malaga.com
+Project Name: hello_world
+Login: ribana-b
+Email: ribana-b@student.42malaga.com
+Tag: Málaga
+
+> [!NOTE]
+>
+> Tag field is optional. By default is set to your campus, extracted
+> from email.
 ```
 
 It will create the following directory tree in the current directory:
 
 ```text
-| - include
-|   | - hello_world.h
-| - src
-|   | - hello_world.c
-| - utils
-|   | - utils.c
-| - Makefile
+| - hello_world
+|   | - include
+|   |   | - hello_world.h
+|   | - src
+|   |   | - hello_world.c
+|   | - utils
+|   |   | - utils.c
+|   | - Makefile
 ```
-
-> [!TIP]
-> If you don't want to type this every time you can modify the inputs for strings
-> with your login and email in the file main.py
-> Check [personal](https://github.com/SrVariable/42ProjectTemplateBuilder/blob/personal/main.py) to see an example.
-
-## Alias
-
-Since it creates the template in the current directory, you can create an alias to run
-the program, so you will be able to execute it anywhere.
-
-```Shell
-alias build="python3 ~/(path_of_repository)/42ProjectTemplateBuilder/main.py" >> ~/.${SHELL##/bin/}rc
 ```

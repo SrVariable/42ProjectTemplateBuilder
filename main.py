@@ -13,16 +13,25 @@ def create_section(title, separator):
     return section
 
 # Function to create respective directories
-def create_dirs():
-    if (not os.path.exists("include")):
-        os.makedirs("include")
-    if (not os.path.exists("src")):
-        os.makedirs("src")
-    if (not os.path.exists("utils")):
-        os.makedirs("utils")
+def create_dirs(name):
+    paths = [ "include", "src", "utils" ]
+    for path in paths:
+        if (not os.path.exists(f"{name}/{path}")):
+            os.makedirs(f"{name}/{path}")
 
 # Function to create the 42 header
-def create_header(filename, username, email):
+def create_header(filename, username, email, tag):
+    fields = email.split('.')
+    if len(fields) < 3:
+        raise Exception("Not a valid 42 email")
+
+    if tag == '':
+        tag = fields[1][2:11] if fields[1][:2] == '42' else fields[1][:9]
+        tag = tag.capitalize()
+    else:
+        tag = tag[:9]
+
+    tld = '.'.join(fields[2:])[:6]
     max_length = 46
 
     if (len(filename) > max_length):
@@ -53,31 +62,34 @@ def create_header(filename, username, email):
     # Middle
     header += "/*" + " " * 57 + ":::      ::::::::  */\n"
     padding = max_length + 6 - len(filename)
-    header += "/*   " + filename + " " * padding + ":+:     :+:     :+:  */\n"
+    header += f"/*   {filename}" + " " * padding + ":+:     :+:     :+:  */\n"
     header += "/*" + " " * 53 + "+:+ +:+         +:+    */\n"
     padding = max_length + 2 - len(author)
-    header += "/*   " + author + " " * padding + "+#+  +:+       +#+       */\n"
+    header += f"/*   {author}" + " " * padding + "+#+  +:+       +#+       */\n"
     header += "/*" + " " * 49 + "+#" * 5 + "+   +#+          */\n"
     padding = max_length + 5 - len(creation_date)
-    header += "/*   " + creation_date + " " * padding + "#+#    #+# Malaga     */\n"
+    padding2 = 11 - len(tag)
+    header += f"/*   {creation_date}" + " " * padding + f"#+#    #+# {tag}" + " " * padding2 + "*/\n"
     padding = max_length + 4 - len(update_date)
-    header += "/*   " + update_date + " " * padding + "###   ########.com     */\n"
+    padding2 = 8 - len(tld)
+    header += "/*   " + update_date + " " * padding + f"###   ########.{tld}" + " " * padding2 + "*/\n"
 
     # Empty line
     header += "/* " + " " * 74 + " */\n"
 
     # Last line
-    header += "/* " + "*" * 74 + " */\n"
+    header += "/* " + "*" * 74 + " */"
 
     return header
 
 # Function that generates the main file
 def c_main_template(header, name):
-    file = open(os.path.join(f"src/{name}.c"), 'w')
-    with open(os.path.join(f"src/{name}.c"), 'w') as file:
+    file = open(os.path.join(f"{name}/src/main.c"), 'w')
+    with open(os.path.join(f"{name}/src/main.c"), 'w') as file:
         file.write(
                 f'''\
 {header}
+
 #include "{name}.h"
 
 int\tmain(void)
@@ -92,18 +104,17 @@ int\tmain(void)
 def c_header_template(header, name):
     separator = "/*"
 
-    with open(os.path.join(f"include/{name}.h"), 'w') as file:
+    with open(os.path.join(f"{name}/include/{name}.h"), 'w') as file:
         file.write(
             f'''\
 {header}
+
 #ifndef {name.upper()}_H
 # define {name.upper()}_H
 
 {create_section("Define Section", f"{separator}")}
 
 {create_section("Include Section", f"{separator}")}
-
-# include <stdio.h>
 
 {create_section("Typedef Section", f"{separator}")}
 
@@ -121,15 +132,16 @@ void\tribanab(void);
 
 # Function that generates the utils file
 def c_utils_template(header, name):
-    with open(os.path.join("utils/utils.c"), 'w') as file:
+    with open(os.path.join(f"{name}/utils/utils.c"), 'w') as file:
         file.write(
             f'''\
 {header}
-#include "{name}.h"
+
+#include <stdio.h>
 
 void\tribanab(void)
 {{
-\tprintf("Hello World, I am ribana-b from 42 Malaga c:\\n");
+\tprintf("🦔 🌊 Made by ribana-b from 42 Malaga\\n");
 \treturn ;
 }}
 '''
@@ -138,7 +150,7 @@ void\tribanab(void)
 # Function that generates the Makefile template
 def c_makefile_template(name):
     separator = "#"
-    with open(os.path.join("Makefile"), 'w') as file:
+    with open(os.path.join(f"{name}/Makefile"), 'w') as file:
         file.write(
             f'''\
 {create_section("Macro Section", f"{separator}")}
@@ -151,7 +163,7 @@ UTILS_DIR := utils/
 OBJ_DIR := obj/
 
 INCLUDE_FILES := {name}.h
-SRC_FILES := {name}.c
+SRC_FILES := main.c
 UTILS_FILES := utils.c
 
 INCLUDE = $(addprefix $(INCLUDE_DIR), $(INCLUDE_FILES))
@@ -236,16 +248,16 @@ FCLEAN_MSG = @echo -e "🗑️  🦔 $(T_MAGENTA)$(BOLD)$(NAME) $(RESET)$(T_RED)
         )
 
 # Main function
-def main():
-    project_name = input('Introduce the name of the project: ')
-    username = input('Introduce your login: ')
-    email = input('Introduce your email: ')
-    create_dirs()
-    project_name = project_name.replace(" ", "")
-    c_main_template(create_header(f"{project_name}.c", username, email), project_name)
-    c_header_template(create_header(f"{project_name}.h", username, email), project_name)
-    c_utils_template(create_header(f"{project_name}.c", username, email), project_name)
-    c_makefile_template(project_name)
-
 if (__name__ == "__main__"):
-    main()
+    project_name = input('Project Name: ')
+    username = input('Login: ')
+    email = input('Email: ')
+    tag = input('Tag: ')
+
+    project_name = project_name.replace(" ", "")
+    create_dirs(project_name)
+
+    c_main_template(create_header(f"main.c", username, email, tag), project_name)
+    c_header_template(create_header(f"{project_name}.h", username, email, tag), project_name)
+    c_utils_template(create_header("utils.c", username, email, tag), project_name)
+    c_makefile_template(project_name)
