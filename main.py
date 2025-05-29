@@ -90,7 +90,7 @@ int\tmain(void)
 
 # Function that generates the header file
 def c_header_template(header, name):
-    separator = "//"
+    separator = "/*"
 
     with open(os.path.join(f"include/{name}.h"), 'w') as file:
         file.write(
@@ -137,12 +137,75 @@ void\tribanab(void)
 
 # Function that generates the Makefile template
 def c_makefile_template(name):
+    separator = "#"
     with open(os.path.join("Makefile"), 'w') as file:
         file.write(
             f'''\
-# @--------------------------------------------------------------------------@ #
-# |                                 Colors                                   | #
-# @--------------------------------------------------------------------------@ #
+{create_section("Macro Section", f"{separator}")}
+
+NAME := {name}
+
+INCLUDE_DIR := include/
+SRC_DIR := src/
+UTILS_DIR := utils/
+OBJ_DIR := obj/
+
+INCLUDE_FILES := {name}.h
+SRC_FILES := {name}.c
+UTILS_FILES := utils.c
+
+INCLUDE = $(addprefix $(INCLUDE_DIR), $(INCLUDE_FILES))
+SRC = $(addprefix $(SRC_DIR), $(SRC_FILES))
+UTILS = $(addprefix $(UTILS_DIR), $(UTILS_FILES))
+
+VPATH = $(SRC_DIR)\\
+        $(UTILS_DIR)\\
+
+OBJ = $(patsubst $(SRC_DIR)%.c, $(OBJ_DIR)%.o, $(SRC))\\
+ \t\t$(patsubst $(UTILS_DIR)%.c, $(OBJ_DIR)%.o, $(UTILS))\\
+
+CC = clang
+CFLAGS := -Wall -Wextra -Werror -MMD -MP
+CPPFLAGS := -I $(INCLUDE_DIR)
+LDFLAGS := 
+LDLIBS := 
+
+RM := rm -rf
+
+{create_section("Target Section", f"{separator}")}
+
+all: $(NAME)
+
+clean:
+\t@$(RM) $(OBJ_DIR)
+\t$(CLEAN_MSG)
+
+fclean: clean
+\t@$(RM) $(NAME)
+\t$(FCLEAN_MSG)
+
+re:
+\t@$(MAKE) -s fclean
+\t@$(MAKE) -s all
+
+.PHONY: all clean fclean re
+
+$(NAME): $(OBJ)
+\t$(OBJ_MSG)
+\t@$(CC) -o $(NAME) $(OBJ) $(LDFLAGS) $(LD_LIBS) # Use this if you want to create a program
+\t@#ar rcs $(NAME) $(OBJ) # Use this if you want to create a library
+\t$(OUTPUT_MSG)
+
+$(OBJ_DIR):
+\t@mkdir -p $(OBJ_DIR)
+
+$(OBJ_DIR)%.o: %.c | $(OBJ_DIR)
+\t$(COMPILE_MSG)
+\t@$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+-include $(OBJ:.o=.d)
+
+{create_section("Colour Section", f"{separator}")}
 
 T_BLACK := \\033[30m
 T_RED := \\033[31m
@@ -162,82 +225,13 @@ CLEAR_LINE := \\033[1F\\r\\033[2K
 
 RESET := \\033[0m
 
-# @--------------------------------------------------------------------------@ #
-# |                                 Macros                                   | #
-# @--------------------------------------------------------------------------@ #
+{create_section("Message Section", f"{separator}")}
 
-NAME := {name}
-
-INCLUDE_DIR := include/
-SRC_DIR := src/
-UTILS_DIR := utils/
-OBJ_DIR := obj/
-
-INCLUDE_FILES := {name}.h
-SRC_FILES := {name}.c
-UTILS_FILES := utils.c
-
-INCLUDE = $(addprefix $(INCLUDE_DIR), $(INCLUDE_FILES))
-SRC = $(addprefix $(SRC_DIR), $(SRC_FILES))
-UTILS = $(addprefix $(UTILS_DIR), $(UTILS_FILES))
-
-OBJ = $(patsubst $(SRC_DIR)%.c, $(OBJ_DIR)%.o, $(SRC)) \\
- \t\t$(patsubst $(UTILS_DIR)%.c, $(OBJ_DIR)%.o, $(UTILS))
-
-CC = clang
-CFLAGS := -Wall -Wextra -Werror
-CPPFLAGS := -I $(INCLUDE_DIR)
-LDFLAGS := 
-LDLIBS := 
-
-RM := rm -rf
-
-# @--------------------------------------------------------------------------@ #
-# |                                 Targets                                  | #
-# @--------------------------------------------------------------------------@ #
-
-all: $(NAME)
-
-$(NAME): $(OBJ_DIR) $(OBJ)
-\t$(OBJ_MSG)
-\t@$(CC) -o $(NAME) $(OBJ) $(LDFLAGS) $(LD_LIBS) # Use this if you want to create a program
-\t@#ar rcs $(NAME) $(OBJ) # Use this if you want to create a library
-\t$(OUTPUT_MSG)
-
-$(OBJ_DIR):
-\t@mkdir -p $(OBJ_DIR)
-
-$(OBJ_DIR)%.o: $(SRC_DIR)%.c $(INCLUDE)
-\t$(COMPILE_MSG)
-\t@$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
-
-$(OBJ_DIR)%.o: $(UTILS_DIR)%.c $(INCLUDE)
-\t$(COMPILE_MSG)
-\t@$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
-
-clean:
-\t@$(RM) $(OBJ_DIR)
-\t$(CLEAN_MSG)
-
-fclean: clean
-\t@$(RM) $(NAME)
-\t$(FCLEAN_MSG)
-
-re:
-\t@make -s fclean
-\t@make -s all
-
-.PHONY: all clean fclean re
-
-# @--------------------------------------------------------------------------@ #
-# |                                Messages                                  | #
-# @--------------------------------------------------------------------------@ #
-
-COMPILE_MSG = @echo -e "$(CLEAR_LINE)$(T_WHITE)$(BOLD)Compiling $<...$(RESET)"
-OBJ_MSG = @echo -e "$(T_MAGENTA)$(BOLD)$(NAME) $(T_YELLOW)Objects $(RESET)$(T_GREEN)created successfully!$(RESET)"
-OUTPUT_MSG = @echo -e "$(T_MAGENTA)$(BOLD)$(NAME) $(RESET)$(T_GREEN)created successfully!$(RESET)"
-CLEAN_MSG = @echo -e "$(T_MAGENTA)$(BOLD)$(NAME) $(T_YELLOW)Objects $(RESET)$(T_RED)destroyed successfully!$(RESET)"
-FCLEAN_MSG = @echo -e "$(T_MAGENTA)$(BOLD)$(NAME) $(RESET)$(T_RED)destroyed successfully!$(RESET)"
+COMPILE_MSG = @echo -e "🌊 🦔 $(T_BLUE)$(BOLD)Compiling $(T_WHITE)$<...$(RESET)"
+OBJ_MSG = @echo -e "✅ 🦔 $(T_MAGENTA)$(BOLD)$(NAME) $(T_YELLOW)Objects $(RESET)$(T_GREEN)created successfully!$(RESET)"
+OUTPUT_MSG = @echo -e "✅ 🦔 $(T_MAGENTA)$(BOLD)$(NAME) $(RESET)$(T_GREEN)created successfully!$(RESET)"
+CLEAN_MSG = @echo -e "🗑️  🦔 $(T_MAGENTA)$(BOLD)$(NAME) $(T_YELLOW)Objects $(RESET)$(T_RED)destroyed successfully!$(RESET)"
+FCLEAN_MSG = @echo -e "🗑️  🦔 $(T_MAGENTA)$(BOLD)$(NAME) $(RESET)$(T_RED)destroyed successfully!$(RESET)"
 '''
         )
 
