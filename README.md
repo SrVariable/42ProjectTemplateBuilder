@@ -42,10 +42,14 @@ Email: ribana-b@student.42malaga.com
 Tag: Málaga
 ```
 
+> *Tag field is optional. By default, it is set to your campus, extracted
+> from email.*
+
 > [!NOTE]
 >
-> Tag field is optional. By default is set to your campus, extracted
-> from email.
+> If you don't want to introduce your data every time you run the script
+> you can create a `.env` file following the `.env.example` in the root
+> directory of 42ProjectTemplateBuilder.
 
 It will create the following directory tree in the current directory:
 

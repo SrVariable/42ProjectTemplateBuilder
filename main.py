@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import datetime
 
 def create_section(title, separator):
@@ -247,12 +248,34 @@ FCLEAN_MSG = @echo -e "🗑️  🦔 $(T_MAGENTA)$(BOLD)$(NAME) $(RESET)$(T_RED)
 '''
         )
 
+class Env:
+    def __init__(self):
+        self.kv = {}
+
+    def load(self):
+        env_path = os.path.dirname(os.path.abspath(sys.argv[0])) + '/.env'
+        if not os.path.exists(env_path):
+            return False
+        with open(env_path, 'r') as f:
+            for line in f:
+                kv = line.split('=')
+                k, v = kv[0].strip(), kv[1].strip()
+                self.kv[k] = v
+        return True
+
 # Main function
 if (__name__ == "__main__"):
     project_name = input('Project Name: ')
-    username = input('Login: ')
-    email = input('Email: ')
-    tag = input('Tag: ')
+
+    env = Env()
+    if not env.load():
+        env.kv["USERNAME"] = input('Login: ')
+        env.kv["EMAIL"] = input('Email: ')
+        env.kv["TAG"] = input('Tag: ')
+
+    username = env.kv["USERNAME"]
+    email = env.kv["EMAIL"]
+    tag = env.kv["TAG"]
 
     project_name = project_name.replace(" ", "")
     create_dirs(project_name)
