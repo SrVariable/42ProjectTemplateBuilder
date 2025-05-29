@@ -5,7 +5,6 @@
 1. [Description](#description)
 2. [Requirements](#requirements)
 3. [Usage](#usage)
-4. [Alias](#alias)
 
 ## Description
 
@@ -41,12 +40,12 @@ Project Name: hello_world
 Login: ribana-b
 Email: ribana-b@student.42malaga.com
 Tag: Málaga
+```
 
 > [!NOTE]
 >
 > Tag field is optional. By default is set to your campus, extracted
 > from email.
-```
 
 It will create the following directory tree in the current directory:
 
@@ -59,5 +58,4 @@ It will create the following directory tree in the current directory:
 |   | - utils
 |   |   | - utils.c
 |   | - Makefile
-```
 ```
