@@ -1,8 +1,43 @@
 import os
+import re
 import sys
 from datetime import datetime
 
+PROGRAM_PATH = os.path.dirname(os.path.abspath(sys.argv[0]))
+
+class Env:
+    def __init__(self):
+        self.config = {
+                'USERNAME': '',
+                'EMAIL': '',
+                'TAG': '',
+                }
+        self.is_loaded = False
+
+    def load(self):
+        env_path = PROGRAM_PATH + '/.env'
+        if not os.path.exists(env_path):
+            return False
+
+        with open(env_path, 'r') as f:
+            for line in f:
+                config = line.split('=')
+                key, value = config[0].strip(), config[1].strip()
+                self.config[key] = value
+
+        self.is_loaded = True
+        return True
+
+
+def create_project_structure(project_name):
+    paths = [ "include", "src", "utils" ]
+    for path in paths:
+        if (not os.path.exists(f"{project_name}/{path}")):
+            os.makedirs(f"{project_name}/{path}")
+
+
 def create_section(title, separator):
+    title += ' Section'
     padding = (80 - (2 * len(separator)) - 4)
     l_padding = int((padding - len(title)) / 2)
     r_padding = l_padding if len(title) % 2 == 0 else l_padding + 1
@@ -13,14 +48,8 @@ def create_section(title, separator):
 
     return section
 
-# Function to create respective directories
-def create_dirs(name):
-    paths = [ "include", "src", "utils" ]
-    for path in paths:
-        if (not os.path.exists(f"{name}/{path}")):
-            os.makedirs(f"{name}/{path}")
 
-# Function to create the 42 header
+# Function to create custom 42 header
 def create_header(filename, username, email, tag):
     fields = email.split('.')
     if len(fields) < 3:
@@ -83,204 +112,101 @@ def create_header(filename, username, email, tag):
 
     return header
 
-# Function that generates the main file
-def c_main_template(header, name):
-    file = open(os.path.join(f"{name}/src/main.c"), 'w')
-    with open(os.path.join(f"{name}/src/main.c"), 'w') as file:
-        file.write(
-                f'''\
-{header}
 
-#include "{name}.h"
+# Get template from `templates` directory
+def get_template(template_name):
+    section_pattern = re.compile('`create_section .+`')
+    header_pattern = re.compile('`create_header .+`')
 
-int\tmain(void)
-{{
-\tribanab();
-\treturn (0);
-}}
-'''
-        )
+    template_path = f"{PROGRAM_PATH}/templates/{template_name}"
+    template = ''
 
-# Function that generates the header file
-def c_header_template(header, name):
-    separator = "/*"
+    with open(template_path) as f:
+        template = [line for line in f]
 
-    with open(os.path.join(f"{name}/include/{name}.h"), 'w') as file:
-        file.write(
-            f'''\
-{header}
+    return template
 
-#ifndef {name.upper()}_H
-# define {name.upper()}_H
 
-{create_section("Define Section", f"{separator}")}
+def format_template(template, comment_type, project_name, config):
+    section_pattern = re.compile('`create_section .+`')
+    header_pattern = re.compile('`create_header .+`')
+    project_name_pattern = '`project_name`'
 
-{create_section("Include Section", f"{separator}")}
+    username = config["USERNAME"]
+    email = config["EMAIL"]
+    tag = config["TAG"]
 
-{create_section("Typedef Section", f"{separator}")}
+    formatted_template = ''
+    for line in template:
+        # TODO: Figure out a better way to replace project_name to allow
+        # any case style
+        if project_name_pattern in line:
+            line = line.replace(project_name_pattern, project_name)
+        elif project_name_pattern.upper() in line:
+            line = line.replace(project_name_pattern.upper(), project_name.upper())
 
-{create_section("Enum Section", f"{separator}")}
+        if section_pattern.match(line):
+            title = line.strip()[16:-1].capitalize()
+            line = create_section(title, comment_type) + '\n'
+        elif header_pattern.match(line):
+            filename = line.strip()[15:-1]
+            line = create_header(filename, username, email, tag) + '\n'
 
-{create_section("Struct Section", f"{separator}")}
+        formatted_template += line
 
-{create_section("Function Section", f"{separator}")}
+    return formatted_template
 
-void\tribanab(void);
 
-#endif
-'''
-        )
+def generate_include(filename, project_name, config):
+    template = get_template('header_template.h')
+    template = format_template(template, "/*", project_name, config)
+    with open(os.path.join(f"{project_name}/include/{filename}"), 'w') as f:
+        f.write(template)
 
-# Function that generates the utils file
-def c_utils_template(header, name):
-    with open(os.path.join(f"{name}/utils/utils.c"), 'w') as file:
-        file.write(
-            f'''\
-{header}
 
-#include <stdio.h>
+def generate_src(filename, project_name, config):
+    template = get_template('main_template.c')
+    template = format_template(template, "/*", project_name, config)
+    with open(os.path.join(f"{project_name}/src/{filename}"), 'w') as f:
+        f.write(template)
 
-void\tribanab(void)
-{{
-\tprintf("🦔 🌊 Made by ribana-b from 42 Malaga\\n");
-\treturn ;
-}}
-'''
-        )
 
-# Function that generates the Makefile template
-def c_makefile_template(name):
-    separator = "#"
-    with open(os.path.join(f"{name}/Makefile"), 'w') as file:
-        file.write(
-            f'''\
-{create_section("Macro Section", f"{separator}")}
+def generate_utils(filename, project_name, config):
+    template = get_template('utils_template.c')
+    template = format_template(template, "/*", project_name, config)
+    with open(os.path.join(f"{project_name}/utils/{filename}"), 'w') as f:
+        f.write(template)
 
-NAME := {name}
 
-INCLUDE_DIR := include/
-SRC_DIR := src/
-UTILS_DIR := utils/
-OBJ_DIR := obj/
-
-INCLUDE_FILES := {name}.h
-SRC_FILES := main.c
-UTILS_FILES := utils.c
-
-INCLUDE = $(addprefix $(INCLUDE_DIR), $(INCLUDE_FILES))
-SRC = $(addprefix $(SRC_DIR), $(SRC_FILES))
-UTILS = $(addprefix $(UTILS_DIR), $(UTILS_FILES))
-
-VPATH = $(SRC_DIR)\\
-        $(UTILS_DIR)\\
-
-OBJ = $(patsubst $(SRC_DIR)%.c, $(OBJ_DIR)%.o, $(SRC))\\
- \t\t$(patsubst $(UTILS_DIR)%.c, $(OBJ_DIR)%.o, $(UTILS))\\
-
-CC = clang
-CFLAGS := -Wall -Wextra -Werror -MMD -MP
-CPPFLAGS := -I $(INCLUDE_DIR)
-LDFLAGS := 
-LDLIBS := 
-
-RM := rm -rf
-
-{create_section("Target Section", f"{separator}")}
-
-all: $(NAME)
-
-clean:
-\t@$(RM) $(OBJ_DIR)
-\t$(CLEAN_MSG)
-
-fclean: clean
-\t@$(RM) $(NAME)
-\t$(FCLEAN_MSG)
-
-re:
-\t@$(MAKE) -s fclean
-\t@$(MAKE) -s all
-
-.PHONY: all clean fclean re
-
-$(NAME): $(OBJ)
-\t$(OBJ_MSG)
-\t@$(CC) -o $(NAME) $(OBJ) $(LDFLAGS) $(LD_LIBS) # Use this if you want to create a program
-\t@#ar rcs $(NAME) $(OBJ) # Use this if you want to create a library
-\t$(OUTPUT_MSG)
-
-$(OBJ_DIR):
-\t@mkdir -p $(OBJ_DIR)
-
-$(OBJ_DIR)%.o: %.c | $(OBJ_DIR)
-\t$(COMPILE_MSG)
-\t@$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
-
--include $(OBJ:.o=.d)
-
-{create_section("Colour Section", f"{separator}")}
-
-T_BLACK := \\033[30m
-T_RED := \\033[31m
-T_GREEN := \\033[32m
-T_YELLOW := \\033[33m
-T_BLUE := \\033[34m
-T_MAGENTA := \\033[35m
-T_CYAN := \\033[36m
-T_WHITE := \\033[37m
-
-BOLD := \\033[1m
-ITALIC := \\033[2m
-UNDERLINE := \\033[3m
-STRIKETHROUGH := \\033[4m
-
-CLEAR_LINE := \\033[1F\\r\\033[2K
-
-RESET := \\033[0m
-
-{create_section("Message Section", f"{separator}")}
-
-COMPILE_MSG = @echo -e "🌊 🦔 $(T_BLUE)$(BOLD)Compiling $(T_WHITE)$<...$(RESET)"
-OBJ_MSG = @echo -e "✅ 🦔 $(T_MAGENTA)$(BOLD)$(NAME) $(T_YELLOW)Objects $(RESET)$(T_GREEN)created successfully!$(RESET)"
-OUTPUT_MSG = @echo -e "✅ 🦔 $(T_MAGENTA)$(BOLD)$(NAME) $(RESET)$(T_GREEN)created successfully!$(RESET)"
-CLEAN_MSG = @echo -e "🗑️  🦔 $(T_MAGENTA)$(BOLD)$(NAME) $(T_YELLOW)Objects $(RESET)$(T_RED)destroyed successfully!$(RESET)"
-FCLEAN_MSG = @echo -e "🗑️  🦔 $(T_MAGENTA)$(BOLD)$(NAME) $(RESET)$(T_RED)destroyed successfully!$(RESET)"
-'''
-        )
-
-class Env:
-    def __init__(self):
-        self.kv = {}
-
-    def load(self):
-        env_path = os.path.dirname(os.path.abspath(sys.argv[0])) + '/.env'
-        if not os.path.exists(env_path):
-            return False
-        with open(env_path, 'r') as f:
-            for line in f:
-                kv = line.split('=')
-                k, v = kv[0].strip(), kv[1].strip()
-                self.kv[k] = v
-        return True
+def generate_makefile(project_name, config):
+    template = get_template('Makefile')
+    template = format_template(template, "#", project_name, config)
+    with open(os.path.join(f"{project_name}/Makefile"), 'w') as f:
+        f.write(template)
 
 # Main function
 if (__name__ == "__main__"):
     project_name = input('Project Name: ')
+    if project_name == '':
+        raise Exception("Project name can't be empty")
 
     env = Env()
-    if not env.load():
-        env.kv["USERNAME"] = input('Login: ')
-        env.kv["EMAIL"] = input('Email: ')
-        env.kv["TAG"] = input('Tag: ')
+    env.load()
 
-    username = env.kv["USERNAME"]
-    email = env.kv["EMAIL"]
-    tag = env.kv["TAG"]
+    username = env.config["USERNAME"] if env.is_loaded else input('Login: ')
+    if username == '':
+        raise Exception("Username can't be empty")
+
+    email = env.config["EMAIL"] if env.is_loaded else input('Email: ')
+    if email == '':
+        raise Exception("Email can't be empty")
+
+    tag = env.config["TAG"] if env.is_loaded else input('Tag: ')
 
     project_name = project_name.replace(" ", "")
-    create_dirs(project_name)
+    create_project_structure(project_name)
 
-    c_main_template(create_header(f"main.c", username, email, tag), project_name)
-    c_header_template(create_header(f"{project_name}.h", username, email, tag), project_name)
-    c_utils_template(create_header("utils.c", username, email, tag), project_name)
-    c_makefile_template(project_name)
+    generate_include(f'{project_name}.h', project_name, env.config)
+    generate_src('main.c', project_name, env.config)
+    generate_utils('utils.c', project_name, env.config)
+    generate_makefile(project_name, env.config)
